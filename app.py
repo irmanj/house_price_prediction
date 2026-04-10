@@ -5,17 +5,21 @@ import numpy as np
 
 model = joblib.load("model.pkl")
 
+st.set_page_config(page_title="Prediksi Harga Rumah", layout="centered")
+
 st.title("🏠 Prediksi Harga Rumah")
+st.markdown("Masukkan data rumah untuk estimasi harga")
 
-luas = st.slider("Luas Rumah", 20, 200)
-kamar = st.slider("Jumlah Kamar", 1, 5)
+col1, col2 = st.columns(2)
 
-# luas = float(input("Masukkan luas rumah: "))
-# kamar = int(input("Jumlah kamar: "))
+with col1:
+    luas = st.number_input("Luas Rumah (m2)", 20, 500, 50)
 
-if st.button("Prediksi"):
+with col2: 
+    kamar = st.number_input("Jumlah Kamar", 1, 10, 2)
+
+if st.button("Prediksi Harga"):
     input_data = pd.DataFrame([[luas, kamar]], columns=["luas", "kamar"])
-    # input_data = np.array([[luas, kamar]])
     harga = model.predict(input_data)[0]
 
-    st.success(f"Estimasi harga rumah: {harga:.2f} juta")
+    st.success(f"💰 Estimasi harga rumah: Rp {harga:.2f} juta")
