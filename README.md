@@ -75,4 +75,4 @@ streamlit run app.py
 
 ## 👨‍💻 Author
 
-Irman Jayanti
+Irma Nur Jayanti
