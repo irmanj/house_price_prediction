@@ -1,25 +1,45 @@
-import streamlit as st
-import joblib
-import pandas as pd
+from fastapi import FastAPI
+import pickle 
 import numpy as np
+import pandas as pd
+import os
 
-model = joblib.load("model.pkl")
+port = int(os.environ.get("PORT", 8000))
 
-st.set_page_config(page_title="Prediksi Harga Rumah", layout="centered")
+app = FastAPI()
 
-st.title("🏠 Prediksi Harga Rumah")
-st.markdown("Masukkan data rumah untuk estimasi harga")
+# load model
+with open("model.pkl", "rb") as f:
+    model = pickle.load(f)
 
-col1, col2 = st.columns(2)
+@app.get("/")
+def home():
+    return {"message": "House Price API"}
 
-with col1:
-    luas = st.number_input("Luas Rumah (m2)", 20, 500, 50)
+@app.post("/predict")
+def predict(luas_rumah: float, jumlah_kamar: int, lokasi: str):
+    
+    # validasi lokasi
+    if lokasi not in ["Jakarta", "Bandung", "Depok", "Bogor"]:
+        return {"error": "Lokasi tidak valid"}
 
-with col2: 
-    kamar = st.number_input("Jumlah Kamar", 1, 10, 2)
+    data = pd.DataFrame([{
+        "luas_rumah": luas_rumah,
+        "jumlah_kamar": jumlah_kamar,
+        "lokasi": lokasi
+    }])
 
-if st.button("Prediksi Harga"):
-    input_data = pd.DataFrame([[luas, kamar]], columns=["luas", "kamar"])
-    harga = model.predict(input_data)[0]
+    pred = model.predict(data)[0]
 
-    st.success(f"💰 Estimasi harga rumah: Rp {harga:.2f} juta")
+    return {
+        "input": {
+            "luas_rumah": luas_rumah,
+            "jumlah_kamar": jumlah_kamar,
+            "lokasi": lokasi
+        },
+        "prediction": f"Rp {int(pred):,}"
+    }
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
